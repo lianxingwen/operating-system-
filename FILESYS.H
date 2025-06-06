@@ -156,4 +156,4 @@ extern  void     install();
 extern  void    format();
 extern  void    close(unsigned int user_id, unsigned short cfd);
 extern  void      halt();
-extern  void      delete(char* filename);
+extern  void      delete_file(char* filename);

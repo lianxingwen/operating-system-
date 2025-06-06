@@ -4,7 +4,7 @@
 //修改:不同模式下对于权限的判断顺序有问题
 //应先判断所有用户，再判断所有断组，再判断其他
 #include <stdio.h>
-#include "filesys.h"
+#include "FILESYS.H"
 
 unsigned int access(unsigned int user_id, struct inode *inode, unsigned short mode)
 {

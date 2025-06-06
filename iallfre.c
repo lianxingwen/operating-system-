@@ -5,7 +5,7 @@
 
 /* i节点分配与释放函数*/
 #include <stdio.h>
-#include "filesys.h"
+#include "FILESYS.H"
 static struct dinode block_buf[BLOCKSIZ / DINODESIZ];
 struct inode *ialloc()
 {
@@ -53,7 +53,7 @@ struct inode *ialloc()
 	return temp_inode;
 }
 
-ifree(unsigned dinodeid) /* ifree */
+void ifree(unsigned dinodeid) /* ifree */
 {
 	filsys.s_ninode++;
 	if (filsys.s_pinode != NICINOD) /* notfull */

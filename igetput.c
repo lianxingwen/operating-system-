@@ -1,6 +1,7 @@
 	/*获取释放i节点内容程序iget()/iput()*/
 #include <stdio.h>
-#include "filesys.h"
+#include <stdlib.h>
+#include "FILESYS.H"
 
 struct inode * iget (unsigned int dinodeid)    /* iget( ) */
 {
@@ -48,8 +49,10 @@ struct inode * iget (unsigned int dinodeid)    /* iget( ) */
    /* 4.put it into hinode[inodeid] queue */
    // 插入哈希链表
    newinode->i_forw = hinode[inodeid].i_forw;
-   newinode->i_back = newinode;
-   newinode->i_forw->i_back = newinode;
+   newinode->i_back = (struct inode*)&hinode[inodeid];
+   if (hinode[inodeid].i_forw != NULL) {
+       hinode[inodeid].i_forw->i_back = newinode;
+   }
    hinode[inodeid].i_forw = newinode;
    /* 5.initialize the mode */
    // 初始化数据
@@ -85,7 +88,7 @@ else
 block_num=pinode->di_size/BLOCKSIZ;
 for (i=0;i<block_num; i++)
 {
-	balloc(pinode->di_addr[i]);
+	bfree(pinode->di_addr[i]);
 
 }
 		ifree(pinode->i_ino);

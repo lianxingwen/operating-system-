@@ -1,7 +1,8 @@
 /* 磁盘块分配与释放函数*/
 //正序填充还是倒序填充?
 #include <stdio.h>
-#include "filesys.h"
+#include <string.h>
+#include "FILESYS.H"
 
 static unsigned int block_buf[BLOCKSIZ]; // 静态缓冲区，主要用于临时存储从磁盘读取或写入的块数据
 unsigned int balloc()
