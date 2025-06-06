@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include "filesys.h"
-halt()
+#include <stdlib.h>
+#include "FILESYS.H"
+void halt()
 {
 	struct inode *inode;
 	int i, j;

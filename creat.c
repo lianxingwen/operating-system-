@@ -1,16 +1,16 @@
 /*	文件创建函数creat()(creat.c)*/
 #include <stdio.h>
-#include "filesys.h"
-creat(unsigned int user_id, char *filename, unsigned short mode)
+#include "FILESYS.H"
+unsigned short creat(unsigned int user_id, char *filename, unsigned short mode)
 {
 	unsigned int di_ith, di_ino;
 	struct inode *inode;
 	int i, j;
 	di_ino = namei(filename); // ???
-	if (di_ino != NULL)		  /* already existed */
+	if (di_ino != 0)		  /* already existed */
 	{
 		inode = iget(di_ino);
-		if (access(user_id, inode, inode) == 0)
+		if (access(user_id, inode, WRITE) == 0)
 		{
 			iput(inode);
 			printf("\rcreat access not allowed \n");

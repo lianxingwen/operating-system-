@@ -1,17 +1,17 @@
 /*删除文件函数delete( )(文件名delete.c)*/
 #include <stdio.h>
-#include "filesys.h"
-delete(char *filename)
+#include "FILESYS.H"
+void delete_file(char *filename)
 {
 	unsigned int dinodeid;
 	struct inode *inode;
 	dinodeid = namei(filename);
-	if (dinodeid != NULL)
+	if (dinodeid != 0)
 		inode = iget(dinodeid);
 	else
 	{
 		printf("\ncan not find this file\n");
-		return -1;
+		return;
 	}
 	inode->di_number--;
 	iput(inode);

@@ -1,18 +1,15 @@
 /*install.c*/
 #include <stdio.h>
 #include <string.h>
-#include "filesys.h"
-
-#include <stdio.h>
-#include <string.h>
-#include "filesys.h"
+#include <stdlib.h>
+#include "FILESYS.H"
 #define _CRT_SECURE_NO_WARNINGS
 
-install()
+void install()
 {
 	int i, j;
 	/*0.open the file column */
-	fopen_s(&fd, "filesystem", "w+r+b"); // fd = fopen("filesystem", "w+r+b");
+	fd = fopen("filesystem", "w+r+b"); // fd = fopen("filesystem", "w+r+b");
 	if (fd == NULL)
 	{
 		printf("\nfilesys can not be loaded\n");
@@ -47,7 +44,7 @@ install()
 	dir.size = cur_path_inode->di_size / (DIRSIZ + 2); // 有几个文件项
 	for (i = 0; i < DIRNUM; i++)
 	{
-		strcpy_s(dir.direct[i].d_name, sizeof(dir.direct[i].d_name), "                 "); // strcpy(dir.direct[i].d_name,"                 ");
+		strcpy(dir.direct[i].d_name, "                 "); // strcpy(dir.direct[i].d_name,"                 ");
 		dir.direct[i].d_ino = 0;
 	}
 

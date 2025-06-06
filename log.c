@@ -1,6 +1,7 @@
 // 用户登录与注销
 #include <stdio.h>
-#include "filesys.h"
+#include <string.h>
+#include "FILESYS.H"
 
 int login (unsigned short uid,char* passwd)
 
@@ -46,7 +47,7 @@ int logout(unsigned short uid)
 if (i==USERNUM)
 {
 	printf("\nno such a file\n");
-	return NULL;
+	return 0;
 }
 for (j=0;j<NOFILE; j++)
 {
