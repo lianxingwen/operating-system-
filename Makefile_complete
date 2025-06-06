@@ -1,0 +1,16 @@
+CC = gcc
+CFLAGS = -Wall -g -std=c99
+TARGET = filesystem
+
+all: $(TARGET)
+
+$(TARGET): complete_filesystem.c
+	$(CC) $(CFLAGS) -o $(TARGET) complete_filesystem.c
+
+clean:
+	rm -f $(TARGET) filesystem
+
+run: $(TARGET)
+	./$(TARGET)
+
+.PHONY: all clean run
