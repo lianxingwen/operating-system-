@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件系统模拟器 - 在线版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-bottom: 2px solid #444;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 100px);
+        }
+        
+        .terminal-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #444;
+        }
+        
+        .help-section {
+            flex: 1;
+            background-color: #2a2a2a;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .terminal {
+            flex: 1;
+            background-color: #000;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .input-area {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-top: 1px solid #444;
+        }
+        
+        .input-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .prompt {
+            color: #4CAF50;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        #commandInput {
+            flex: 1;
+            background-color: #1e1e1e;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        
+        #commandInput:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .send-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin-left: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .send-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .output-line {
+            margin-bottom: 2px;
+            white-space: pre-wrap;
+        }
+        
+        .command-line {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .error-line {
+            color: #ff6b6b;
+        }
+        
+        .success-line {
+            color: #51cf66;
+        }
+        
+        .help-section h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .help-section ul {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        
+        .help-section li {
+            margin-bottom: 8px;
+            padding: 5px;
+            background-color: #333;
+            border-radius: 3px;
+        }
+        
+        .help-section code {
+            color: #4CAF50;
+            background-color: #1e1e1e;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .quick-commands {
+            margin-top: 20px;
+        }
+        
+        .quick-btn {
+            display: block;
+            width: 100%;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .quick-btn:hover {
+            background-color: #555;
+        }
+        
+        .status-bar {
+            background-color: #2d2d2d;
+            padding: 5px 15px;
+            border-top: 1px solid #444;
+            font-size: 12px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖥️ 文件系统模拟器</h1>
+        <p>基于C语言的简单文件系统 - 在线交互版本</p>
+    </div>
+    
+    <div class="container">
+        <div class="terminal-section">
+            <div class="terminal" id="terminal">
+                <div class="output-line">正在初始化文件系统...</div>
+            </div>
+            
+            <div class="input-area">
+                <div class="input-container">
+                    <span class="prompt" id="prompt">文件系统></span>
+                    <input type="text" id="commandInput" placeholder="输入命令..." autocomplete="off">
+                    <button class="send-btn" onclick="sendCommand()">发送</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="help-section">
+            <h3>📚 命令帮助</h3>
+            <ul>
+                <li><code>login &lt;用户ID&gt; &lt;密码&gt;</code> - 登录系统</li>
+                <li><code>logout</code> - 登出当前用户</li>
+                <li><code>ls</code> 或 <code>dir</code> - 列出文件</li>
+                <li><code>create &lt;文件名&gt;</code> - 创建文件</li>
+                <li><code>mkdir &lt;目录名&gt;</code> - 创建目录</li>
+                <li><code>write &lt;文件名&gt; &lt;内容&gt;</code> - 写入文件</li>
+                <li><code>read &lt;文件名&gt;</code> - 读取文件</li>
+                <li><code>delete &lt;文件名&gt;</code> - 删除文件</li>
+                <li><code>help</code> - 显示帮助</li>
+                <li><code>exit</code> - 退出系统</li>
+            </ul>
+            
+            <h3>👥 可用用户</h3>
+            <ul>
+                <li>用户ID: <code>2116</code>, 密码: <code>dddd</code></li>
+                <li>用户ID: <code>2117</code>, 密码: <code>bbbb</code></li>
+                <li>用户ID: <code>2118</code>, 密码: <code>abcd</code></li>
+                <li>用户ID: <code>2119</code>, 密码: <code>cccc</code></li>
+                <li>用户ID: <code>2220</code>, 密码: <code>eeee</code></li>
+            </ul>
+            
+            <div class="quick-commands">
+                <h3>⚡ 快速命令</h3>
+                <button class="quick-btn" onclick="quickCommand('login 2116 dddd')">登录用户2116</button>
+                <button class="quick-btn" onclick="quickCommand('help')">显示帮助</button>
+                <button class="quick-btn" onclick="quickCommand('ls')">列出文件</button>
+                <button class="quick-btn" onclick="quickCommand('create demo.txt')">创建演示文件</button>
+                <button class="quick-btn" onclick="quickCommand('write demo.txt Hello World!')">写入演示内容</button>
+                <button class="quick-btn" onclick="quickCommand('read demo.txt')">读取演示文件</button>
+                <button class="quick-btn" onclick="quickCommand('mkdir testdir')">创建测试目录</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status-bar">
+        <span id="status">就绪 - 请输入命令开始使用</span>
+    </div>
+
+    <script>
+        let currentUser = null;
+        
+        // 页面加载时初始化
+        window.onload = function() {
+            initializeTerminal();
+            document.getElementById('commandInput').focus();
+        };
+        
+        // 初始化终端
+        function initializeTerminal() {
+            fetch('/api/init')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        addOutput(data.output);
+                    }
+                })
+                .catch(error => {
+                    addOutput('初始化失败: ' + error, 'error-line');
+                });
+        }
+        
+        // 发送命令
+        function sendCommand() {
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+            
+            if (!command) return;
+            
+            // 显示命令
+            addOutput(`${document.getElementById('prompt').textContent} ${command}`, 'command-line');
+            
+            // 清空输入框
+            input.value = '';
+            
+            // 更新状态
+            updateStatus('执行中...');
+            
+            // 发送到服务器
+            fetch('/api/command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    addOutput(data.error, 'error-line');
+                } else {
+                    addOutput(data.output);
+                    
+                    // 更新提示符
+                    updatePrompt(command, data.output);
+                }
+                updateStatus('就绪');
+            })
+            .catch(error => {
+                addOutput('网络错误: ' + error, 'error-line');
+                updateStatus('错误');
+            });
+        }
+        
+        // 快速命令
+        function quickCommand(command) {
+            document.getElementById('commandInput').value = command;
+            sendCommand();
+        }
+        
+        // 添加输出
+        function addOutput(text, className = '') {
+            const terminal = document.getElementById('terminal');
+            const lines = text.split('\n');
+            
+            lines.forEach(line => {
+                const div = document.createElement('div');
+                div.className = `output-line ${className}`;
+                div.textContent = line;
+                terminal.appendChild(div);
+            });
+            
+            // 滚动到底部
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // 更新提示符
+        function updatePrompt(command, output) {
+            const prompt = document.getElementById('prompt');
+            
+            if (command.startsWith('login') && output.includes('登录成功')) {
+                // 提取用户名
+                const match = output.match(/欢迎 (\w+)/);
+                if (match) {
+                    currentUser = match[1];
+                    prompt.textContent = `[${currentUser}]> `;
+                }
+            } else if (command === 'logout' && output.includes('已登出')) {
+                currentUser = null;
+                prompt.textContent = '文件系统> ';
+            }
+        }
+        
+        // 更新状态
+        function updateStatus(status) {
+            document.getElementById('status').textContent = status;
+        }
+        
+        // 回车键发送命令
+        document.getElementById('commandInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendCommand();
+            }
+        });
+        
+        // 阻止页面刷新
+        window.addEventListener('beforeunload', function(e) {
+            if (currentUser) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
