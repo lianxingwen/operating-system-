@@ -1,0 +1,16 @@
+CC = gcc
+CFLAGS = -Wall -g -std=c99
+TARGET = simple_filesystem
+
+all: $(TARGET)
+
+$(TARGET): simple_filesystem.c
+	$(CC) $(CFLAGS) -o $(TARGET) simple_filesystem.c
+
+clean:
+	rm -f $(TARGET)
+
+run: $(TARGET)
+	./$(TARGET)
+
+.PHONY: all clean run

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件系统模拟器</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #569cd6;
+            margin-bottom: 10px;
+        }
+        
+        .terminal {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .terminal-line {
+            margin: 2px 0;
+            white-space: pre-wrap;
+        }
+        
+        .prompt {
+            color: #7c3aed;
+            font-weight: bold;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .command-input {
+            flex: 1;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .command-input:focus {
+            outline: none;
+            border-color: #569cd6;
+        }
+        
+        .btn {
+            background-color: #238636;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #2ea043;
+        }
+        
+        .btn-secondary {
+            background-color: #656d76;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7d8590;
+        }
+        
+        .btn-danger {
+            background-color: #da3633;
+        }
+        
+        .btn-danger:hover {
+            background-color: #f85149;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .help-panel {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .help-panel h3 {
+            color: #f0883e;
+            margin-top: 0;
+        }
+        
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        
+        .command-item {
+            background-color: #21262d;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #569cd6;
+        }
+        
+        .command-name {
+            color: #79c0ff;
+            font-weight: bold;
+        }
+        
+        .command-desc {
+            color: #8b949e;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .quick-commands {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 5px 10px;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .quick-btn:hover {
+            background-color: #30363d;
+            border-color: #569cd6;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .status.running {
+            background-color: #1a7f37;
+            color: white;
+        }
+        
+        .status.stopped {
+            background-color: #656d76;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ 文件系统模拟器</h1>
+            <p>基于C语言实现的简单文件系统，支持用户登录、文件操作、目录管理等功能</p>
+        </div>
+        
+        <div id="status" class="status stopped">
+            系统未启动
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn">启动系统</button>
+            <button id="stopBtn" class="btn btn-danger" disabled>停止系统</button>
+            <button id="clearBtn" class="btn btn-secondary">清空终端</button>
+        </div>
+        
+        <div class="help-panel">
+            <h3>📚 快速入门</h3>
+            <div class="quick-commands">
+                <button class="quick-btn" onclick="sendQuickCommand('help')">help - 帮助</button>
+                <button class="quick-btn" onclick="sendQuickCommand('login 2116 dddd')">login 2116 dddd - 登录</button>
+                <button class="quick-btn" onclick="sendQuickCommand('ls')">ls - 列出文件</button>
+                <button class="quick-btn" onclick="sendQuickCommand('pwd')">pwd - 当前路径</button>
+                <button class="quick-btn" onclick="sendQuickCommand('create test.txt')">create test.txt - 创建文件</button>
+                <button class="quick-btn" onclick="sendQuickCommand('mkdir mydir')">mkdir mydir - 创建目录</button>
+            </div>
+            
+            <div class="command-list">
+                <div class="command-item">
+                    <div class="command-name">login &lt;用户ID&gt; &lt;密码&gt;</div>
+                    <div class="command-desc">登录系统。可用用户: 2116(dddd), 2117(bbbb), 2118(abcd), 2119(cccc), 2220(eeee)</div>
+                </div>
+                <div class="command-item">
+                    <div class="command-name">create &lt;文件名&gt;</div>
+                    <div class="command-desc">创建新文件，返回文件ID用于后续操作</div>
+                </div>
+                <div class="command-item">
+                    <div class="command-name">write &lt;文件ID&gt; &lt;内容&gt;</div>
+                    <div class="command-desc">向指定文件写入内容</div>
+                </div>
+                <div class="command-item">
+                    <div class="command-name">read &lt;文件ID&gt;</div>
+                    <div class="command-desc">读取指定文件的内容</div>
+                </div>
+                <div class="command-item">
+                    <div class="command-name">mkdir &lt;目录名&gt;</div>
+                    <div class="command-desc">创建新目录</div>
+                </div>
+                <div class="command-item">
+                    <div class="command-name">cd &lt;目录名&gt;</div>
+                    <div class="command-desc">切换到指定目录，使用 ".." 返回上级目录</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="terminal" id="terminal">
+            <div class="terminal-line">等待系统启动...</div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="commandInput" class="command-input" placeholder="输入命令..." disabled>
+            <button id="sendBtn" class="btn" disabled>发送</button>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        
+        const terminal = document.getElementById('terminal');
+        const commandInput = document.getElementById('commandInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
+        
+        function addToTerminal(text) {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.textContent = text;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        function clearTerminal() {
+            terminal.innerHTML = '<div class="terminal-line">终端已清空</div>';
+        }
+        
+        function updateStatus(running) {
+            isRunning = running;
+            if (running) {
+                status.textContent = '系统运行中';
+                status.className = 'status running';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                commandInput.disabled = false;
+                sendBtn.disabled = false;
+                commandInput.focus();
+            } else {
+                status.textContent = '系统已停止';
+                status.className = 'status stopped';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                commandInput.disabled = true;
+                sendBtn.disabled = true;
+            }
+        }
+        
+        async function startSystem() {
+            try {
+                const response = await fetch('/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+                
+                if (data.status === 'started') {
+                    updateStatus(true);
+                    clearTerminal();
+                    data.output.forEach(line => addToTerminal(line));
+                    
+                    // 开始轮询输出
+                    pollOutput();
+                }
+            } catch (error) {
+                addToTerminal('启动失败: ' + error.message);
+            }
+        }
+        
+        async function stopSystem() {
+            try {
+                await fetch('/stop', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                updateStatus(false);
+                addToTerminal('系统已停止');
+            } catch (error) {
+                addToTerminal('停止失败: ' + error.message);
+            }
+        }
+        
+        async function sendCommand(command) {
+            if (!isRunning) return;
+            
+            try {
+                addToTerminal('> ' + command);
+                
+                const response = await fetch('/command', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({command: command})
+                });
+                const data = await response.json();
+                
+                data.output.forEach(line => addToTerminal(line));
+            } catch (error) {
+                addToTerminal('命令发送失败: ' + error.message);
+            }
+        }
+        
+        async function pollOutput() {
+            if (!isRunning) return;
+            
+            try {
+                const response = await fetch('/output');
+                const data = await response.json();
+                
+                data.output.forEach(line => addToTerminal(line));
+                
+                if (isRunning) {
+                    setTimeout(pollOutput, 1000);
+                }
+            } catch (error) {
+                console.error('轮询输出失败:', error);
+                if (isRunning) {
+                    setTimeout(pollOutput, 2000);
+                }
+            }
+        }
+        
+        function sendQuickCommand(command) {
+            if (isRunning) {
+                commandInput.value = command;
+                sendCommand(command);
+                commandInput.value = '';
+            }
+        }
+        
+        // 事件监听器
+        startBtn.addEventListener('click', startSystem);
+        stopBtn.addEventListener('click', stopSystem);
+        clearBtn.addEventListener('click', clearTerminal);
+        
+        sendBtn.addEventListener('click', () => {
+            const command = commandInput.value.trim();
+            if (command) {
+                sendCommand(command);
+                commandInput.value = '';
+            }
+        });
+        
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim();
+                if (command) {
+                    sendCommand(command);
+                    commandInput.value = '';
+                }
+            }
+        });
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus(false);
+        });
+    </script>
+</body>
+</html>
