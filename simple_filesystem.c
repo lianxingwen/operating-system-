@@ -76,7 +76,7 @@ void logout() {
 // 查找文件
 int find_file(char* name, int dir_id) {
     for (int i = 0; i < file_count; i++) {
-        if (strcmp(files[i].name, name) == 0 && files[i].parent_dir == dir_id) {
+        if (strcmp(files[i].name, name) == 0 && files[i].parent_dir == dir_id && strlen(files[i].name) > 0) {
             return i;
         }
     }
@@ -188,7 +188,7 @@ void list_dir() {
     printf("----------------------------------------\n");
     
     for (int i = 0; i < file_count; i++) {
-        if (files[i].parent_dir == current_dir) {
+        if (files[i].parent_dir == current_dir && strlen(files[i].name) > 0) {
             printf("%s\t%-16s\t%d\t%d\n", 
                    files[i].is_directory ? "目录" : "文件",
                    files[i].name,
@@ -257,9 +257,9 @@ void show_help() {
     printf("ls                     - 显示当前目录内容\n");
     printf("mkdir <目录名>         - 创建目录\n");
     printf("cd <目录名>            - 切换目录\n");
-    printf("create <文件名>        - 创建文件\n");
-    printf("write <文件ID> <内容>  - 写入文件\n");
-    printf("read <文件ID>          - 读取文件\n");
+    printf("create <文件名>        - 创建文件（返回文件ID）\n");
+    printf("write <文件ID|文件名> <内容> - 写入文件\n");
+    printf("read <文件ID|文件名>   - 读取文件\n");
     printf("delete <文件名>        - 删除文件\n");
     printf("pwd                    - 显示当前路径\n");
     printf("help                   - 显示帮助信息\n");
@@ -322,9 +322,11 @@ int main() {
             break;
         }
         else if (strcmp(cmd, "login") == 0) {
-            if (args_count >= 2) {
+            if (args_count >= 3) {
                 int uid = atoi(arg1);
-                char* password = (args_count >= 3) ? strtok(arg2, " ") : "";
+                // 只取密码的第一个单词
+                char password[64];
+                sscanf(arg2, "%s", password);
                 if (login(uid, password)) {
                     printf("登录成功！欢迎用户 %d\n", uid);
                 } else {
@@ -371,17 +373,33 @@ int main() {
         else if (strcmp(cmd, "write") == 0) {
             if (args_count >= 3) {
                 int file_id = atoi(arg1);
+                // 如果第一个参数不是数字，尝试按文件名查找
+                if (file_id == 0 && strcmp(arg1, "0") != 0) {
+                    file_id = find_file(arg1, current_dir);
+                    if (file_id < 0) {
+                        printf("文件不存在: %s\n", arg1);
+                        continue;
+                    }
+                }
                 write_file(file_id, arg2);
             } else {
-                printf("用法: write <文件ID> <内容>\n");
+                printf("用法: write <文件ID或文件名> <内容>\n");
             }
         }
         else if (strcmp(cmd, "read") == 0) {
             if (args_count >= 2) {
                 int file_id = atoi(arg1);
+                // 如果第一个参数不是数字，尝试按文件名查找
+                if (file_id == 0 && strcmp(arg1, "0") != 0) {
+                    file_id = find_file(arg1, current_dir);
+                    if (file_id < 0) {
+                        printf("文件不存在: %s\n", arg1);
+                        continue;
+                    }
+                }
                 read_file(file_id);
             } else {
-                printf("用法: read <文件ID>\n");
+                printf("用法: read <文件ID或文件名>\n");
             }
         }
         else if (strcmp(cmd, "delete") == 0) {
